@@ -46,10 +46,6 @@ async def messages(update: Update, context: CallbackContext):
         and not update.message.reply_to_message
     ):
 
-        await context.bot.send_chat_action(
-            chat_id=update.message.chat_id, action=ChatAction.TYPING
-        )
-
         content = f"{update.effective_user.first_name}: {update.message.text}"
 
     elif (
@@ -74,6 +70,10 @@ async def messages(update: Update, context: CallbackContext):
         ]
 
     if content:
+
+        await context.bot.send_chat_action(
+            chat_id=update.message.chat_id, action=ChatAction.TYPING
+        )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
