@@ -1,10 +1,9 @@
 from decouple import config
 
-
 BOT_TOKEN = config("BOT_TOKEN")
 GOOGLE_API_KEY = config("GOOGLE_API_KEY")
 TG_SECRET_TOKEN = config("TG_SECRET_TOKEN")
-
+DEVELOPER_CHAT_ID = config("DEVELOPER_CHAT_ID")
 
 SYSTEM_INSTRUCTIONS = """
 Quiero que actúes como si estuvieras participando en un chat grupal de Telegram
