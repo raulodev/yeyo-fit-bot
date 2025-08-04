@@ -7,9 +7,16 @@ from google import genai
 from google.genai import types
 from telegram import Update
 from telegram.constants import ChatAction
+from telegram.error import BadRequest
 from telegram.ext import Application, ContextTypes, MessageHandler, filters
 
-from config import BOT_TOKEN, DEVELOPER_CHAT_ID, GOOGLE_API_KEY, SYSTEM_INSTRUCTIONS
+from config import (
+    BOT_TOKEN,
+    DEVELOPER_CHAT_ID,
+    GOOGLE_API_KEY,
+    PROXY_URL,
+    SYSTEM_INSTRUCTIONS,
+)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -18,13 +25,16 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
+
 client = genai.Client(
     api_key=GOOGLE_API_KEY,
-    http_options=types.HttpOptions(client_args={"proxy": "socks5://43.153.81.153:443"}),
+    http_options=types.HttpOptions(
+        client_args={"proxy": PROXY_URL} if PROXY_URL else None, timeout=30000
+    ),
 )
 
 
-def split_text(text: str, max_chars=1024):
+def split_text(text: str, max_chars=2048):
     sections = []
     while len(text) > max_chars:
         corte = text.rfind(" ", 0, max_chars)
@@ -108,9 +118,31 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         texts = split_text(response.text)
 
+        last_msg_id = None
+
         for text in texts:
 
-            await update.message.reply_text(text, parse_mode="MARKDOWN")
+            msg = None
+
+            try:
+
+                msg = await update.message.reply_text(
+                    text, parse_mode="MARKDOWN", reply_to_message_id=last_msg_id
+                )
+
+            except BadRequest as exc:
+
+                logger.error(exc)
+
+                if "Can't parse entities:" in exc.message:
+
+                    msg = await update.message.reply_text(
+                        text, reply_to_message_id=last_msg_id
+                    )
+
+            if msg:
+
+                last_msg_id = msg.message_id
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
