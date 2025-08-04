@@ -1,9 +1,13 @@
-from decouple import config
+from decouple import Csv, config
 
+# The bot token
 BOT_TOKEN = config("BOT_TOKEN")
+# The Google API key
 GOOGLE_API_KEY = config("GOOGLE_API_KEY")
-TG_SECRET_TOKEN = config("TG_SECRET_TOKEN")
+# The chat id of the developer chat
 DEVELOPER_CHAT_ID = config("DEVELOPER_CHAT_ID")
+# List of proxies to use example: socks5://43.153.81.153:443,socks5://127.0.0.1:9050
+PROXY_LIST = config("PROXY_LIST", cast=Csv(int), default="")
 
 SYSTEM_INSTRUCTIONS = """
 Quiero que actúes como si estuvieras participando en un chat grupal de Telegram
