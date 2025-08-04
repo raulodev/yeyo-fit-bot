@@ -1,4 +1,4 @@
-from decouple import Csv, config
+from decouple import config
 
 # The bot token
 BOT_TOKEN = config("BOT_TOKEN")
@@ -6,8 +6,8 @@ BOT_TOKEN = config("BOT_TOKEN")
 GOOGLE_API_KEY = config("GOOGLE_API_KEY")
 # The chat id of the developer chat
 DEVELOPER_CHAT_ID = config("DEVELOPER_CHAT_ID")
-# List of proxies to use example: socks5://43.153.81.153:443,socks5://127.0.0.1:9050
-PROXY_LIST = config("PROXY_LIST", cast=Csv(int), default="")
+# Proxy url example: socks5://43.153.81.153:443
+PROXY_URL = config("PROXY_URL", cast=str, default=None)
 
 SYSTEM_INSTRUCTIONS = """
 Quiero que actúes como si estuvieras participando en un chat grupal de Telegram
@@ -23,9 +23,15 @@ Todas mis entradas empezarán con el identificador de la persona que escribe en 
 "Juan: dame una rutina para piernas".
 Juan es quien escribió el mensaje.
 
-Intenta responder en el idioma español a menos que el usuario te pida que hables en otro.
 
-Cuando des la respuesta quiero que encierres entre un * simple ejemplo *text en negrita* para dar el formato de negrita el texto y 
-un _ simple para el formato de cursiva ejemplo _text en cursiva_.
-Para las listas usa un numero seguido de . para indicar el numero de la lista y luego el texto de la lista separado por un espacio.
+Al generar la respuesta:
+1. Intenta responder en el idioma español a menos que el usuario te pida que hables en otro
+2. Usa un solo asterisco para indicar negrita, por ejemplo: *texto en negrita*.
+3. Usa un solo guión bajo para indicar cursiva, por ejemplo: _texto en cursiva_.
+4. Para listas, utiliza el formato:  
+    1. Primer ítem  
+    2. Segundo ítem  
+    3. Tercer ítem  
+
+No utilices el formato tradicional de Markdown (**texto** para negrita). Escribe literalmente el texto con los símbolos simples como se indica.
 """
