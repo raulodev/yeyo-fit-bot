@@ -18,7 +18,23 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-client = genai.Client(api_key=GOOGLE_API_KEY)
+client = genai.Client(
+    api_key=GOOGLE_API_KEY,
+    http_options=types.HttpOptions(client_args={"proxy": "socks5://43.153.81.153:443"}),
+)
+
+
+def split_text(text: str, max_chars=1024):
+    sections = []
+    while len(text) > max_chars:
+        corte = text.rfind(" ", 0, max_chars)
+        if corte == -1:
+            corte = max_chars
+        sections.append(text[:corte])
+        text = text[corte:].lstrip()
+    if text:
+        sections.append(text)
+    return sections
 
 
 async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -90,7 +106,11 @@ async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
         )
 
-        await update.message.reply_text(response.text, parse_mode="MARKDOWN")
+        texts = split_text(response.text)
+
+        for text in texts:
+
+            await update.message.reply_text(text, parse_mode="MARKDOWN")
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -106,16 +126,18 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
     message = (
         "An exception was raised while handling an update\n"
-        f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
-        "</pre>\n\n"
-        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-        f"<pre>{html.escape(tb_string)}</pre>"
+        f"update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+        "\n\n"
+        f"context.chat_data = {html.escape(str(context.chat_data))}\n\n"
+        f"context.user_data = {html.escape(str(context.user_data))}\n\n"
+        f"{html.escape(tb_string)}"
     )
 
-    await context.bot.send_message(
-        chat_id=DEVELOPER_CHAT_ID, text=message, parse_mode="HTML"
-    )
+    texts = split_text(message, max_chars=4096)
+
+    for text in texts:
+
+        await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=text)
 
 
 def main() -> None:
